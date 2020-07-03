@@ -1,0 +1,67 @@
+@import url('https://fonts.googleapis.com/css?family=Anton|Audiowide');
+
+.invis {
+  opacity: 0;
+}
+.noShow {
+  display: none;
+}
+body {
+  color: lightgreen;
+  text-shadow: 0 0 4px #FFF
+  margin: 0;
+  background-repeat: no-repeat;
+  background-attachment: fixed;
+  background-color: black;
+  background-image: linear-gradient(rgb(0, 0, 0), rgb(10, 10, 10), rgb(15, 15, 15), rgb(20, 20, 20));
+}
+#chatWindow {
+  border-radius: 10px;
+  background-color: silver;
+  color: black;
+  font-family: 'Audiowide', cursive;
+  height: 70vh;
+  width: 70vw;
+  text-align: left;
+}
+#chatInput {
+  width: 62vw;
+  background-color: lightgreen;
+}
+.redText {
+  color: red;
+}
+.centered {
+  text-align: center;
+}
+.headers {
+  text-align: center;
+  font-weight: bold;
+}
+.silverText {
+  color: silver;
+}
+.chatInAndOuts {
+  border: solid 4px black;
+  border-radius: 5px;
+  background: silver;
+  padding: 20px;
+}
+input[type=button] {
+  font-family: 'Audiowide', cursive;
+  padding: 10px;
+  margin: 10px;
+  border: solid 4px black;
+  border-radius: 5px;
+  background: green;
+  color: black;
+}
+input[type=button]:hover {
+  background: white;
+  color: darkGreen;
+  cursor: pointer;
+}
+input[type=text] {
+  font-family: 'Audiowide', cursive;
+  color: black;
+}
