@@ -2,18 +2,20 @@ import { firebaseConfig } from './config.js';
 // Initialize Firebase
 firebase.initializeApp(firebaseConfig);
 const db = firebase.firestore();
+const upperPanel = document.getElementById('upperPanel');
+const leftSide = document.getElementById('leftSide');
+const mainPart = document.getElementById('mainPart');
 const listenSend = document.getElementById('sendMsg').addEventListener('click', sMbuttonClicked);
 const messageLine = document.getElementById('chatInput');
 const messut = document.getElementById('chatWindow');
-const customersName = document.getElementById('customersName');
+const usersName = document.getElementById('usersName');
+const usersPw = document.getElementById('pswField');
 const listenName = document.getElementById('submitName').addEventListener('click', subName);
-const myChat = {
-  docRefId: null,
-  id: null,
-  myName: null,
-  messages: [],
-  helperOnline: false,
-  helperId: null
+const myFile = {
+  identified: false,
+  myDetails: [],
+  myChats: [],
+  allChats: []
 };
 // event listener for enter:
 messageLine.addEventListener("keydown", function (e) {
@@ -55,6 +57,25 @@ function sMbuttonClicked() {
 }
 // submits customers name
 function subName() {
+  if (usersName.value !== '' && usersPw.value !== '') {
+    // check if username and psw are ok
+    db.collection("users").get().then( (querySnapshot) => {
+      querySnapshot.forEach( (doc) => {
+        if (doc.data().userName === usersName.value &&
+        doc.data().password === usersPw.value) {
+          // username and psw found
+          myFile.myDetails.push(doc.data());
+          console.log('id ok');
+          // show what need to show, and dont want dont
+          mainPart.classList.remove('noShow');
+          upperPanel.innerHTML = ' tänne tulee työkalupainikkeita, josta voi esim vaihella omia chatnickejä tms.';
+          leftSide.innerHTML = 'chatit:<br>'
+        }
+      });
+    });
+  }
+}
+  /*
   myChat.myName = customersName.value;
   if (customersName.value === '') {
     const rdNbr =  1 + Math.floor(Math.random() * 100);
@@ -97,33 +118,38 @@ function subName() {
     }
   });
   messageLine.focus();
-}
+  */
 // real-time listener
+
 db.collection("chats").orderBy("name").onSnapshot(snapshot => {
   let changes = snapshot.docChanges();
   changes.forEach(change => {
     //console.log(change.doc.data());
     if (change.type == "added") {
-      if (change.doc.data().chatId === myChat.id) {
-        messut.innerHTML += change.doc.data().messages;
-      }
+  //    if (change.doc.data().chatId === myChat.id) {
+        myFile.allChats.push(change.doc.data());
+        leftSide.innerHTML += `<div class= "chatsAtLeft" id= "${change.doc.data().name}">chat available: ${change.doc.data().name}</div>`;
+        console.log('new chat!', );
+  //    }
     } else if (change.type == "removed") {
-      //console.log('change type removed');
+      myFile.allChats = [];
+      leftSide.innerHTML = '';
+      console.log('chat disconnected');
     } else if (change.type === 'modified') {
-      if (change.doc.data().chatId === myChat.id) {
-        messut.innerHTML += change.doc.data().messages[change.doc.data().messages.length - 1];
-      }
+      //if (change.doc.data().chatId === myChat.id) {
+    //    messut.innerHTML += change.doc.data().messages[change.doc.data().messages.length - 1];
+    //  }
+      console.log('new message in chat');
     }
   });
 });
+
 // when window is loaded
 window.onload = ( ()=> {
   // focus on command line:
-  customersName.focus();
+  usersName.focus();
 });
 // when window is closed
 window.onbeforeunload = ( ()=> {
-  // at this point if needed could save the chat to archives.
-  // Delete old chat from database
-  db.collection("chats").doc(myChat.docRefId).delete();
+  // if need something here...
 });

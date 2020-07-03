@@ -15,6 +15,24 @@ body {
   background-color: black;
   background-image: linear-gradient(rgb(0, 0, 0), rgb(10, 10, 10), rgb(15, 15, 15), rgb(20, 20, 20));
 }
+#container {
+display: grid;
+grid-template-columns: 20% 80%;
+grid-template-rows: 10% 90%;
+grid-template-areas:
+  'theHead theHead'
+  'theLeft theCenter';
+  grid-gap: 1px;
+}
+#upperPanel {
+  grid-area: theHead;
+}
+#leftSide {
+  grid-area: theLeft;
+}
+#mainPart {
+  grid-area: theCenter;
+}
 #chatWindow {
   border-radius: 10px;
   background-color: silver;
@@ -27,6 +45,11 @@ body {
 #chatInput {
   width: 62vw;
   background-color: lightgreen;
+}
+.chatsAtLeft {
+  border: solid 1px yellow;
+  margin-top: 3px;
+  margin-bottom: 3px;
 }
 .redText {
   color: red;
