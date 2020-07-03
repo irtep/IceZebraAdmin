@@ -1,7 +1,7 @@
 const app = require('express')();
 const express = require('express');
 const http = require('http').Server(app);
-const port = 6767;
+const port = 6970;
 
 app.use(express.static('UI'));
 app.get('/', (req, res) => {
