@@ -41,15 +41,29 @@ grid-template-areas:
   height: 70vh;
   width: 70vw;
   text-align: left;
+  overflow-y: scroll;
 }
 #chatInput {
   width: 62vw;
   background-color: lightgreen;
 }
 .chatsAtLeft {
-  border: solid 1px yellow;
+  border-style: solid;
+  border-width: 1px;
   margin-top: 3px;
   margin-bottom: 3px;
+}
+.yellowBorders {
+  border-color: yellow;
+}
+.greenBorders {
+  border-color: green;
+}
+.blueBorders {
+  border-color: blue;
+}
+.redBorders {
+  border-color: red;
 }
 .redText {
   color: red;
