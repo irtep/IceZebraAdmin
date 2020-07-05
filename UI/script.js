@@ -32,6 +32,13 @@ messageLine.addEventListener("keydown", function (e) {
     }
   }
 });
+// destroys chat in its online checks
+function delChat(theChat) {
+  const toDelete = theChat.target.id.substring(0, theChat.target.id.length-8);
+  // Delete old chat from database
+  db.collection("chats").doc(toDelete).delete();
+  // refresh leftSide
+}
 // makes correct message line
 function sendMessage(myName, myMessage){
   const d = new Date();
@@ -60,10 +67,6 @@ function sMbuttonClicked() {
       }
     });
   }
-}
-// destroys chat in its online checks
-function destroyChat(theChat) {
-  console.log('you want to destroy: ', theChat.target.id);
 }
 // submits users name
 function subName() {
@@ -96,18 +99,22 @@ function clickedChat(chat) {
       }
       messut.innerHTML = xhat.messages;
       myFile.activeChat = xhat.docRefId;
+      // scrolling to down
+      messut.scrollTop = messut.scrollHeight;
       // check if customer still online
       const seconds = new Date().getTime() / 1000;
       const docRef = db.collection("connectionCheck").doc(myFile.activeChat);
       docRef.get().then((doc) => {
         if (doc.exists) {
-        console.log("Document data:", doc.data().lastCheck);
+        //console.log("Document data:", doc.data().lastCheck);
         if (seconds-doc.data().lastCheck > 120) {
           //console.log('result: ', seconds-doc.data().lastCheck);
           //console.log('this guy has disconnected');
+          const deleteToken = JSON.parse(JSON.stringify(myFile.activeChat)) + '_destroy';
           messut.innerHTML += 'customer has disconnected.';
-          messut.innerHTML += `<input type= "button" id= ${myFile.activeChat} value= "delete chat"
-          onclick = "destroyChat()">`;
+          messut.innerHTML += `<button id= "${deleteToken}">delete chat</button>`;
+          //const deleteToken = JSON.parse(JSON.stringify(myFile.activeChat));
+          document.getElementById(deleteToken).addEventListener('click', delChat);
         } else {
           //console.log('result: ', seconds-doc.data().lastCheck);
           //console.log('this guy is online');
@@ -122,11 +129,6 @@ function clickedChat(chat) {
       });
     }
   });
-  // if this chat has hasAgent: false, add me as agent and hasAgent: true
-  // also add this to myChats
-  // also add this to chatWindow
-  // if has already agent, then only show the chat and mark this as an active chat
-  // focus on messageLine
 }
 // real time listener of firestore
 db.collection("chats").orderBy("name").onSnapshot(snapshot => {
@@ -146,7 +148,7 @@ db.collection("chats").orderBy("name").onSnapshot(snapshot => {
       myFile.allChats.forEach( chat => {
         if (chat.chatId === change.doc.data().chatId) {
           chat.borders = 'redBorders';
-          chat.messages.push(`<br><input type= "button" value= "close chat" id= "${chat.chatId}">`);
+          //chat.messages.push(`<br><input type= "button" value= "close chat" id= "${chat.chatId}">`);
         }
       });
     //  console.log('chat disconnected');
@@ -172,7 +174,7 @@ db.collection("chats").orderBy("name").onSnapshot(snapshot => {
       myFile.allChats.forEach( chat => {
         chat.hasAgent ? adjective = 'is being helped by' : adjective = 'needs agent!';
         if (chat.agent !== null) { helper = chat.agent };
-        leftSide.innerHTML += `<div class= "chatsAtLeft ${chat.borders}" id= "${chat.chatId}">
+        leftSide.innerHTML += `<div class= "chatsAtLeft ${chat. borders}" id= "${chat.chatId}">
         ${chat.name} ${adjective} ${helper}</div>`;
       });
     }
