@@ -37,6 +37,7 @@ function delChat(theChat) {
   const toDelete = theChat.target.id.substring(0, theChat.target.id.length-8);
   // Delete old chat from database
   db.collection("chats").doc(toDelete).delete();
+  db.collection("connectionCheck").doc(toDelete).delete();
   // refresh leftSide
 }
 // makes correct message line
@@ -84,6 +85,9 @@ function subName() {
           mainPart.classList.remove('noShow');
           upperPanel.innerHTML = ' tänne tulee työkalupainikkeita, josta voi esim vaihella omia chatnickejä tms.';
           leftSide.innerHTML = 'chatit:<br>'
+          // also should show what chats are available
+          // at the moment only shows when new comes or new message comes
+          // if no chats, might be good that the screen is disabled... maybe
         }
       });
     });
@@ -94,7 +98,7 @@ function clickedChat(chat) {
   myFile.allChats.forEach( (xhat, idx) => {
     if (chat.target.id === xhat.chatId) {
       if (xhat.hasAgent === false) {
-        xhat.hasAgent = myFile.myDetails[0].userName;
+        xhat.agent = myFile.myDetails[0].userName;
         xhat.hasAgent = true;
       }
       messut.innerHTML = xhat.messages;
@@ -107,7 +111,7 @@ function clickedChat(chat) {
       docRef.get().then((doc) => {
         if (doc.exists) {
         //console.log("Document data:", doc.data().lastCheck);
-        if (seconds-doc.data().lastCheck > 120) {
+        if (seconds-doc.data().lastCheck > 40) {
           //console.log('result: ', seconds-doc.data().lastCheck);
           //console.log('this guy has disconnected');
           const deleteToken = JSON.parse(JSON.stringify(myFile.activeChat)) + '_destroy';
@@ -173,7 +177,8 @@ db.collection("chats").orderBy("name").onSnapshot(snapshot => {
       leftSide.innerHTML = '';
       myFile.allChats.forEach( chat => {
         chat.hasAgent ? adjective = 'is being helped by' : adjective = 'needs agent!';
-        if (chat.agent !== null) { helper = chat.agent };
+        console.log('chat in case: ', chat);
+        if (chat.agent !== null) { helper = chat.agent } else { helper = null; };
         leftSide.innerHTML += `<div class= "chatsAtLeft ${chat. borders}" id= "${chat.chatId}">
         ${chat.name} ${adjective} ${helper}</div>`;
       });
