@@ -32,6 +32,14 @@ messageLine.addEventListener("keydown", function (e) {
     }
   }
 });
+// destroys chat in its online checks
+function delChat(theChat) {
+  const toDelete = theChat.target.id.substring(0, theChat.target.id.length-8);
+  // Delete old chat from database
+  db.collection("chats").doc(toDelete).delete();
+  db.collection("connectionCheck").doc(toDelete).delete();
+  // refresh leftSide
+}
 // makes correct message line
 function sendMessage(myName, myMessage){
   const d = new Date();
@@ -61,16 +69,13 @@ function sMbuttonClicked() {
     });
   }
 }
-// destroys chat in its online checks
-function destroyChat(theChat) {
-  console.log('you want to destroy: ', theChat.target.id);
-}
 // submits users name
 function subName() {
   if (usersName.value !== '' && usersPw.value !== '') {
     // check if username and psw are ok
     db.collection("users").get().then( (querySnapshot) => {
       querySnapshot.forEach( (doc) => {
+        console.log('comparnig: ', doc.data().userName, usersName.value, doc.data().password, usersPw.value);
         if (doc.data().userName === usersName.value &&
         doc.data().password === usersPw.value) {
           // username and psw found
@@ -81,6 +86,53 @@ function subName() {
           mainPart.classList.remove('noShow');
           upperPanel.innerHTML = ' tänne tulee työkalupainikkeita, josta voi esim vaihella omia chatnickejä tms.';
           leftSide.innerHTML = 'chatit:<br>'
+          // also should show what chats are available
+          /*
+          db.collection("helpFiles").get().then((querySnapshot) => {
+              querySnapshot.forEach((doc) => {
+                  console.log(`${doc.id} => ${doc.data().question} => ${doc.data().response}`);
+                  // add entry to allData
+          */
+          // db.collection("chats").get().then((snapshot) => {
+          db.collection("chats").get().then((snapshots) => {
+            snapshots.forEach( chatInDb => {
+              myFile.allChats.push(chatInDb.data());
+            });
+            // write chats to left side
+            if (myFile.identified) {
+              let adjective = '';
+              let helper = '';
+              leftSide.innerHTML = '';
+              myFile.allChats.forEach( chat => {
+                chat.hasAgent ? adjective = 'is being helped by' : adjective = 'needs agent!';
+                console.log('chat in case: ', chat);
+                if (chat.agent !== null) { helper = chat.agent } else { helper = null; };
+                leftSide.innerHTML += `<div class= "chatsAtLeft ${chat. borders}" id= "${chat.chatId}">
+                ${chat.name} ${adjective} ${helper}</div>`;
+              });
+            }
+            // event listener for chats at left
+            const elements = document.getElementsByClassName('chatsAtLeft');
+            for (var i = 0; i < elements.length; i++) {
+              elements[i].addEventListener('click', clickedChat, false);
+            }
+            // add info that agent is online:
+            /*
+            firebase
+                .firestore()
+                .collection('users')
+                .doc('some-user')
+                .update({
+                     valueToIncrement: firebase.firestore.FieldValue.increment(1)
+                })
+            */
+            db.collection('agentsOnline').doc('OQ3GyyZowOxJkfD3WQcX').update({
+              howManyAgents: firebase.firestore.FieldValue.increment(1)
+            });
+
+            });
+        //  });  // listener ends        // at the moment only shows when new comes or new message comes
+          // if no chats, might be good that the screen is disabled... maybe
         }
       });
     });
@@ -91,23 +143,27 @@ function clickedChat(chat) {
   myFile.allChats.forEach( (xhat, idx) => {
     if (chat.target.id === xhat.chatId) {
       if (xhat.hasAgent === false) {
-        xhat.hasAgent = myFile.myDetails[0].userName;
+        xhat.agent = myFile.myDetails[0].userName;
         xhat.hasAgent = true;
       }
       messut.innerHTML = xhat.messages;
       myFile.activeChat = xhat.docRefId;
+      // scrolling to down
+      messut.scrollTop = messut.scrollHeight;
       // check if customer still online
       const seconds = new Date().getTime() / 1000;
       const docRef = db.collection("connectionCheck").doc(myFile.activeChat);
       docRef.get().then((doc) => {
         if (doc.exists) {
-        console.log("Document data:", doc.data().lastCheck);
-        if (seconds-doc.data().lastCheck > 120) {
+        //console.log("Document data:", doc.data().lastCheck);
+        if (seconds-doc.data().lastCheck > 40) {
           //console.log('result: ', seconds-doc.data().lastCheck);
           //console.log('this guy has disconnected');
+          const deleteToken = JSON.parse(JSON.stringify(myFile.activeChat)) + '_destroy';
           messut.innerHTML += 'customer has disconnected.';
-          messut.innerHTML += `<input type= "button" id= ${myFile.activeChat} value= "delete chat"
-          onclick = "destroyChat()">`;
+          messut.innerHTML += `<button id= "${deleteToken}">delete chat</button>`;
+          //const deleteToken = JSON.parse(JSON.stringify(myFile.activeChat));
+          document.getElementById(deleteToken).addEventListener('click', delChat);
         } else {
           //console.log('result: ', seconds-doc.data().lastCheck);
           //console.log('this guy is online');
@@ -122,11 +178,6 @@ function clickedChat(chat) {
       });
     }
   });
-  // if this chat has hasAgent: false, add me as agent and hasAgent: true
-  // also add this to myChats
-  // also add this to chatWindow
-  // if has already agent, then only show the chat and mark this as an active chat
-  // focus on messageLine
 }
 // real time listener of firestore
 db.collection("chats").orderBy("name").onSnapshot(snapshot => {
@@ -146,7 +197,7 @@ db.collection("chats").orderBy("name").onSnapshot(snapshot => {
       myFile.allChats.forEach( chat => {
         if (chat.chatId === change.doc.data().chatId) {
           chat.borders = 'redBorders';
-          chat.messages.push(`<br><input type= "button" value= "close chat" id= "${chat.chatId}">`);
+          //chat.messages.push(`<br><input type= "button" value= "close chat" id= "${chat.chatId}">`);
         }
       });
     //  console.log('chat disconnected');
@@ -171,8 +222,9 @@ db.collection("chats").orderBy("name").onSnapshot(snapshot => {
       leftSide.innerHTML = '';
       myFile.allChats.forEach( chat => {
         chat.hasAgent ? adjective = 'is being helped by' : adjective = 'needs agent!';
-        if (chat.agent !== null) { helper = chat.agent };
-        leftSide.innerHTML += `<div class= "chatsAtLeft ${chat.borders}" id= "${chat.chatId}">
+        console.log('chat in case: ', chat);
+        if (chat.agent !== null) { helper = chat.agent } else { helper = null; };
+        leftSide.innerHTML += `<div class= "chatsAtLeft ${chat. borders}" id= "${chat.chatId}">
         ${chat.name} ${adjective} ${helper}</div>`;
       });
     }
