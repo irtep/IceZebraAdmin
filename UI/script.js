@@ -75,6 +75,7 @@ function subName() {
     // check if username and psw are ok
     db.collection("users").get().then( (querySnapshot) => {
       querySnapshot.forEach( (doc) => {
+        console.log('comparnig: ', doc.data().userName, usersName.value, doc.data().password, usersPw.value);
         if (doc.data().userName === usersName.value &&
         doc.data().password === usersPw.value) {
           // username and psw found
@@ -86,7 +87,51 @@ function subName() {
           upperPanel.innerHTML = ' tänne tulee työkalupainikkeita, josta voi esim vaihella omia chatnickejä tms.';
           leftSide.innerHTML = 'chatit:<br>'
           // also should show what chats are available
-          // at the moment only shows when new comes or new message comes
+          /*
+          db.collection("helpFiles").get().then((querySnapshot) => {
+              querySnapshot.forEach((doc) => {
+                  console.log(`${doc.id} => ${doc.data().question} => ${doc.data().response}`);
+                  // add entry to allData
+          */
+          // db.collection("chats").get().then((snapshot) => {
+          db.collection("chats").get().then((snapshots) => {
+            snapshots.forEach( chatInDb => {
+              myFile.allChats.push(chatInDb.data());
+            });
+            // write chats to left side
+            if (myFile.identified) {
+              let adjective = '';
+              let helper = '';
+              leftSide.innerHTML = '';
+              myFile.allChats.forEach( chat => {
+                chat.hasAgent ? adjective = 'is being helped by' : adjective = 'needs agent!';
+                console.log('chat in case: ', chat);
+                if (chat.agent !== null) { helper = chat.agent } else { helper = null; };
+                leftSide.innerHTML += `<div class= "chatsAtLeft ${chat. borders}" id= "${chat.chatId}">
+                ${chat.name} ${adjective} ${helper}</div>`;
+              });
+            }
+            // event listener for chats at left
+            const elements = document.getElementsByClassName('chatsAtLeft');
+            for (var i = 0; i < elements.length; i++) {
+              elements[i].addEventListener('click', clickedChat, false);
+            }
+            // add info that agent is online:
+            /*
+            firebase
+                .firestore()
+                .collection('users')
+                .doc('some-user')
+                .update({
+                     valueToIncrement: firebase.firestore.FieldValue.increment(1)
+                })
+            */
+            db.collection('agentsOnline').doc('OQ3GyyZowOxJkfD3WQcX').update({
+              howManyAgents: firebase.firestore.FieldValue.increment(1)
+            });
+
+            });
+        //  });  // listener ends        // at the moment only shows when new comes or new message comes
           // if no chats, might be good that the screen is disabled... maybe
         }
       });
