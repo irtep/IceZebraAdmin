@@ -38,10 +38,35 @@ function delChat(theChat) {
   // Delete old chat from database
   db.collection("chats").doc(toDelete).delete();
   db.collection("connectionCheck").doc(toDelete).delete();
-  // refresh leftSide
+  // refresh leftSide and my chats
+  myFile.allChats = [];
+  db.collection("chats").get().then((snapshots) => {
+    snapshots.forEach( chatInDb => {
+      myFile.allChats.push(chatInDb.data());
+    });
+    // write chats to left side
+    if (myFile.identified) {
+      let adjective = '';
+      let helper = '';
+      leftSide.innerHTML = '';
+      myFile.allChats.forEach( chat => {
+        chat.hasAgent ? adjective = 'is being helped by' : adjective = 'needs agent!';
+        console.log('chat in case: ', chat);
+        if (chat.agent !== null) { helper = chat.agent } else { helper = null; };
+        leftSide.innerHTML += `<div class= "chatsAtLeft ${chat. borders}" id= "${chat.chatId}">
+        ${chat.name} ${adjective} ${helper}</div>`;
+      });
+    }
+    // event listener for chats at left
+    const elements = document.getElementsByClassName('chatsAtLeft');
+    for (var i = 0; i < elements.length; i++) {
+      elements[i].addEventListener('click', clickedChat, false);
+    }
+  });
 }
+
 // makes correct message line
-function sendMessage(myName, myMessage){
+function sendMessage(myName, myMessage) {
   const d = new Date();
   const h = d.getHours();
   const m = d.getMinutes();

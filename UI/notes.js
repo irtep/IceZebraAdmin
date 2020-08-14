@@ -31,8 +31,9 @@ connection ok in and out, admin and customer!
 // need to add:
 /*
   when admin is connected, then set to db: helper is online and refresher to chatter list.
-  when customer connects, chat opens only if helper is online,
-  if not, then there is chat not available.
+  ok, now sets ++ to helpers and shows chatters list, however list comes twice
+  when customer connects, chat opens only if helper is online,  done!
+  if not, then there is chat not available. done!
   when customer clicks close chat, sends request to db to delete that chat
 
 */
