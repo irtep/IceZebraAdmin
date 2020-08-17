@@ -16,7 +16,8 @@ const myFile = {
   myDetails: [],
   myChats: [],
   activeChat: null,
-  allChats: []
+  allChats: [],
+  chatIsOnline: ''
 };
 // event listener for enter:
 messageLine.addEventListener("keydown", function (e) {
@@ -64,7 +65,14 @@ function delChat(theChat) {
     }
   });
 }
+// changes chat nickname
+function changeChatNick(newNick) {
 
+}
+// sets chats of the page on and off
+function setChatsOnOff() {
+
+}
 // makes correct message line
 function sendMessage(myName, myMessage) {
   const d = new Date();
@@ -109,7 +117,10 @@ function subName() {
           myFile.identified = true;
           // show what need to show, and dont want dont
           mainPart.classList.remove('noShow');
-          upperPanel.innerHTML = ' tänne tulee työkalupainikkeita, josta voi esim vaihella omia chatnickejä tms.';
+          upperPanel.innerHTML = `My chat nickname: <input type= "text" size= "30" id= "nickNameField"> chat is now <div id="chatStats">${myFile.chatIsOnline}</div>
+          <input type= "button" value= "set chats on / off" id= "chatStatusSetter">`;
+          // default value for nickNameField
+          document.getElementById('nickNameField').defaultValue = 'mister chatMan';
           leftSide.innerHTML = 'chatit:<br>'
           // also should show what chats are available
           /*
@@ -142,19 +153,10 @@ function subName() {
               elements[i].addEventListener('click', clickedChat, false);
             }
             // add info that agent is online:
-            /*
-            firebase
-                .firestore()
-                .collection('users')
-                .doc('some-user')
-                .update({
-                     valueToIncrement: firebase.firestore.FieldValue.increment(1)
-                })
-            */
+            // this will need to be needed, but it can stay for now as ref to other code..
             db.collection('agentsOnline').doc('OQ3GyyZowOxJkfD3WQcX').update({
               howManyAgents: firebase.firestore.FieldValue.increment(1)
             });
-
             });
         //  });  // listener ends        // at the moment only shows when new comes or new message comes
           // if no chats, might be good that the screen is disabled... maybe

@@ -1,3 +1,4 @@
 node_modules/
 .git/
 UI/config.js
+.firebase/
