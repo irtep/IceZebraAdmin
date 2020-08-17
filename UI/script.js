@@ -16,7 +16,8 @@ const myFile = {
   myDetails: [],
   myChats: [],
   activeChat: null,
-  allChats: []
+  allChats: [],
+  chatIsOnline: ''
 };
 // event listener for enter:
 messageLine.addEventListener("keydown", function (e) {
@@ -38,10 +39,42 @@ function delChat(theChat) {
   // Delete old chat from database
   db.collection("chats").doc(toDelete).delete();
   db.collection("connectionCheck").doc(toDelete).delete();
-  // refresh leftSide
+  // refresh leftSide and my chats
+  myFile.allChats = [];
+  db.collection("chats").get().then((snapshots) => {
+    snapshots.forEach( chatInDb => {
+      myFile.allChats.push(chatInDb.data());
+    });
+    // write chats to left side
+    if (myFile.identified) {
+      let adjective = '';
+      let helper = '';
+      leftSide.innerHTML = '';
+      myFile.allChats.forEach( chat => {
+        chat.hasAgent ? adjective = 'is being helped by' : adjective = 'needs agent!';
+        console.log('chat in case: ', chat);
+        if (chat.agent !== null) { helper = chat.agent } else { helper = null; };
+        leftSide.innerHTML += `<div class= "chatsAtLeft ${chat. borders}" id= "${chat.chatId}">
+        ${chat.name} ${adjective} ${helper}</div>`;
+      });
+    }
+    // event listener for chats at left
+    const elements = document.getElementsByClassName('chatsAtLeft');
+    for (var i = 0; i < elements.length; i++) {
+      elements[i].addEventListener('click', clickedChat, false);
+    }
+  });
+}
+// changes chat nickname
+function changeChatNick(newNick) {
+
+}
+// sets chats of the page on and off
+function setChatsOnOff() {
+
 }
 // makes correct message line
-function sendMessage(myName, myMessage){
+function sendMessage(myName, myMessage) {
   const d = new Date();
   const h = d.getHours();
   const m = d.getMinutes();
@@ -84,7 +117,10 @@ function subName() {
           myFile.identified = true;
           // show what need to show, and dont want dont
           mainPart.classList.remove('noShow');
-          upperPanel.innerHTML = ' tänne tulee työkalupainikkeita, josta voi esim vaihella omia chatnickejä tms.';
+          upperPanel.innerHTML = `My chat nickname: <input type= "text" size= "30" id= "nickNameField"> chat is now <div id="chatStats">${myFile.chatIsOnline}</div>
+          <input type= "button" value= "set chats on / off" id= "chatStatusSetter">`;
+          // default value for nickNameField
+          document.getElementById('nickNameField').defaultValue = 'mister chatMan';
           leftSide.innerHTML = 'chatit:<br>'
           // also should show what chats are available
           /*
@@ -117,19 +153,10 @@ function subName() {
               elements[i].addEventListener('click', clickedChat, false);
             }
             // add info that agent is online:
-            /*
-            firebase
-                .firestore()
-                .collection('users')
-                .doc('some-user')
-                .update({
-                     valueToIncrement: firebase.firestore.FieldValue.increment(1)
-                })
-            */
+            // this will need to be needed, but it can stay for now as ref to other code..
             db.collection('agentsOnline').doc('OQ3GyyZowOxJkfD3WQcX').update({
               howManyAgents: firebase.firestore.FieldValue.increment(1)
             });
-
             });
         //  });  // listener ends        // at the moment only shows when new comes or new message comes
           // if no chats, might be good that the screen is disabled... maybe
