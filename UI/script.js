@@ -11,6 +11,14 @@ const messut = document.getElementById('chatWindow');
 const usersName = document.getElementById('usersName');
 const usersPw = document.getElementById('pswField');
 const listenName = document.getElementById('submitName').addEventListener('click', subName);
+const pswFields = document.getElementById('pswFields');
+const adminTools = document.getElementById('adminTools');
+const chatStats = document.getElementById('chatStats');
+// default value for nickNameField
+document.getElementById('nickNameField').defaultValue = 'mister chatMan';
+// event listeners for nickname changer and chat on/off setter
+document.getElementById('nickNameField').addEventListener('change', changeChatNick);
+document.getElementById('chatStatusSetter').addEventListener('click', setChatsOnOff);
 const myFile = {
   identified: false,
   myDetails: [],
@@ -67,11 +75,11 @@ function delChat(theChat) {
 }
 // changes chat nickname
 function changeChatNick(newNick) {
-
+  console.log('changing nick: ', newNick.target.value);
 }
 // sets chats of the page on and off
 function setChatsOnOff() {
-
+  console.log('setting chats off or on');
 }
 // makes correct message line
 function sendMessage(myName, myMessage) {
@@ -112,15 +120,20 @@ function subName() {
         if (doc.data().userName === usersName.value &&
         doc.data().password === usersPw.value) {
           // username and psw found
+          // get status of chats:
+          db.collection("chatOnline").get().then((snapshots) => {
+            snapshots.forEach( snaps => {
+              chatStats.innerHTML = `${snaps.data().value}`;
+            });
+          });
           myFile.myDetails.push(doc.data());
           console.log('id ok');
           myFile.identified = true;
           // show what need to show, and dont want dont
           mainPart.classList.remove('noShow');
-          upperPanel.innerHTML = `My chat nickname: <input type= "text" size= "30" id= "nickNameField"> chat is now <div id="chatStats">${myFile.chatIsOnline}</div>
-          <input type= "button" value= "set chats on / off" id= "chatStatusSetter">`;
-          // default value for nickNameField
-          document.getElementById('nickNameField').defaultValue = 'mister chatMan';
+          pswFields.classList.add('noShow');
+          adminTools.classList.remove('noShow');
+          // show inputs
           leftSide.innerHTML = 'chatit:<br>'
           // also should show what chats are available
           /*
@@ -143,7 +156,7 @@ function subName() {
                 chat.hasAgent ? adjective = 'is being helped by' : adjective = 'needs agent!';
                 console.log('chat in case: ', chat);
                 if (chat.agent !== null) { helper = chat.agent } else { helper = null; };
-                leftSide.innerHTML += `<div class= "chatsAtLeft ${chat. borders}" id= "${chat.chatId}">
+                leftSide.innerHTML += `<div class= "chatsAtLeft ${chat.borders}" id= "${chat.chatId}">
                 ${chat.name} ${adjective} ${helper}</div>`;
               });
             }
@@ -157,7 +170,7 @@ function subName() {
             db.collection('agentsOnline').doc('OQ3GyyZowOxJkfD3WQcX').update({
               howManyAgents: firebase.firestore.FieldValue.increment(1)
             });
-            });
+          });
         //  });  // listener ends        // at the moment only shows when new comes or new message comes
           // if no chats, might be good that the screen is disabled... maybe
         }
@@ -206,7 +219,16 @@ function clickedChat(chat) {
     }
   });
 }
-// real time listener of firestore
+// real time listener for status of chats
+db.collection('chatOnline').onSnapshot(snapshot => {
+  let changes = snapshot.docChanges();
+  changes.forEach(change => {
+    if (change.type === 'modified') {
+      chatStats.innerHTML = `${change.doc.data().value}`;
+    }
+  });
+});
+// real time listener of chats
 db.collection("chats").orderBy("name").onSnapshot(snapshot => {
   let changes = snapshot.docChanges();
   changes.forEach(change => {

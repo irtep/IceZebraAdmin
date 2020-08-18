@@ -11,11 +11,17 @@
   <body>
   <div id= "container">
     <div id= "upperPanel">
-      Käyttäjänimi:
-      <input type= "text" id= "usersName"><br>
-      Salasana:
-      <input type= "password" id= "pswField"><br>
-      <input type= "button" id= "submitName" value= "Lähetä">
+      <div id= "pswFields">
+        Käyttäjänimi:
+        <input type= "text" id= "usersName"><br>
+        Salasana:
+        <input type= "password" id= "pswField"><br>
+        <input type= "button" id= "submitName" value= "Lähetä">
+      </div>
+      <div id= "adminTools" class= "noShow">
+      <input type= "text" size= "30" id= "nickNameField"> chat is now <div id="chatStats"></div>
+      <input type= "button" value= "set chats on / off" id= "chatStatusSetter">
+      </div>
     </div>
     <div id= "leftSide">
     </div>
