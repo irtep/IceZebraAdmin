@@ -14,8 +14,9 @@ const listenName = document.getElementById('submitName').addEventListener('click
 const pswFields = document.getElementById('pswFields');
 const adminTools = document.getElementById('adminTools');
 const chatStats = document.getElementById('chatStats');
+const nickNameField = document.getElementById('nickNameField');
 // default value for nickNameField
-document.getElementById('nickNameField').defaultValue = 'mister chatMan';
+nickNameField.defaultValue = 'Asiakaspalvelu';
 // event listeners for nickname changer and chat on/off setter
 document.getElementById('nickNameField').addEventListener('change', changeChatNick);
 document.getElementById('chatStatusSetter').addEventListener('click', setChatsOnOff);
@@ -76,10 +77,37 @@ function delChat(theChat) {
 // changes chat nickname
 function changeChatNick(newNick) {
   console.log('changing nick: ', newNick.target.value);
+  myFile.myDetails[0].chatNick = newNick.target.value;
 }
 // sets chats of the page on and off
 function setChatsOnOff() {
-  console.log('setting chats off or on');
+  let oldValue = null;
+  let newValue = null;
+  const newDbConnect = new Promise( (resolve, reject) => {
+    db.collection("chatOnline").get().then((snapshots) => {
+      snapshots.forEach( snaps => {
+        console.log('got value!', snaps.data().value);
+        oldValue = snaps.data().value;
+        if (oldValue !== null) {
+          resolve(snaps.data().value);
+        }
+      });
+    });
+  });
+  newDbConnect.then( (results) => {
+    if (results === null) {
+      console.log('newValue is null!');
+    } else {
+      if (results) {
+        newValue = false;
+      } else {
+        newValue = true;
+      }
+      db.collection('chatOnline').doc('re5gRpP7o2CGzURudmbO').update({
+        value: newValue
+      });
+    }
+  });
 }
 // makes correct message line
 function sendMessage(myName, myMessage) {
@@ -116,64 +144,58 @@ function subName() {
     // check if username and psw are ok
     db.collection("users").get().then( (querySnapshot) => {
       querySnapshot.forEach( (doc) => {
-        console.log('comparnig: ', doc.data().userName, usersName.value, doc.data().password, usersPw.value);
+        //console.log('comparnig: ', doc.data().userName, usersName.value, doc.data().password, usersPw.value);
         if (doc.data().userName === usersName.value &&
         doc.data().password === usersPw.value) {
           // username and psw found
           // get status of chats:
           db.collection("chatOnline").get().then((snapshots) => {
             snapshots.forEach( snaps => {
-              chatStats.innerHTML = `${snaps.data().value}`;
+              snaps.data().value ? chatStats.innerHTML = `<span class= "silverText">ONLINE</span>` : chatStats.innerHTML = `<span class= "redText">OFFLINE</span>`;
+              //chatStats.innerHTML = `${snaps.data().value}`;
             });
           });
           myFile.myDetails.push(doc.data());
           console.log('id ok');
           myFile.identified = true;
+          myFile.myDetails[0].chatNick = nickNameField.value;
           // show what need to show, and dont want dont
           mainPart.classList.remove('noShow');
           pswFields.classList.add('noShow');
           adminTools.classList.remove('noShow');
           // show inputs
           leftSide.innerHTML = 'chatit:<br>'
+
           // also should show what chats are available
-          /*
-          db.collection("helpFiles").get().then((querySnapshot) => {
-              querySnapshot.forEach((doc) => {
-                  console.log(`${doc.id} => ${doc.data().question} => ${doc.data().response}`);
-                  // add entry to allData
-          */
-          // db.collection("chats").get().then((snapshot) => {
-          db.collection("chats").get().then((snapshots) => {
-            snapshots.forEach( chatInDb => {
-              myFile.allChats.push(chatInDb.data());
-            });
-            // write chats to left side
-            if (myFile.identified) {
-              let adjective = '';
-              let helper = '';
-              leftSide.innerHTML = '';
-              myFile.allChats.forEach( chat => {
-                chat.hasAgent ? adjective = 'is being helped by' : adjective = 'needs agent!';
-                console.log('chat in case: ', chat);
-                if (chat.agent !== null) { helper = chat.agent } else { helper = null; };
-                leftSide.innerHTML += `<div class= "chatsAtLeft ${chat.borders}" id= "${chat.chatId}">
-                ${chat.name} ${adjective} ${helper}</div>`;
+          console.log('myFile.allChats: ', myFile.allChats);
+
+            db.collection("chats").get().then((snapshots) => {
+              snapshots.forEach( chatInDb => {
+                if (myFile.allChats === []) {
+                  myFile.allChats.push(chatInDb.data());
+                }
               });
-            }
-            // event listener for chats at left
-            const elements = document.getElementsByClassName('chatsAtLeft');
-            for (var i = 0; i < elements.length; i++) {
-              elements[i].addEventListener('click', clickedChat, false);
-            }
-            // add info that agent is online:
-            // this will need to be needed, but it can stay for now as ref to other code..
-            db.collection('agentsOnline').doc('OQ3GyyZowOxJkfD3WQcX').update({
-              howManyAgents: firebase.firestore.FieldValue.increment(1)
+              // write chats to left side
+              if (myFile.identified) {
+                let adjective = '';
+                let helper = '';
+                leftSide.innerHTML = '';
+                myFile.allChats.forEach( chat => {
+                  chat.hasAgent ? adjective = 'is being helped by' : adjective = 'needs agent!';
+                  console.log('chat in case: ', chat);
+                  if (chat.agent !== null) { helper = chat.agent } else { helper = null; };
+                  leftSide.innerHTML += `<div class= "chatsAtLeft ${chat.borders}" id= "${chat.chatId}">
+                  ${chat.name} ${adjective} ${helper}</div>`;
+                });
+              }
+              // event listener for chats at left
+              const elements = document.getElementsByClassName('chatsAtLeft');
+              for (var i = 0; i < elements.length; i++) {
+                elements[i].addEventListener('click', clickedChat, false);
+              }
+              
             });
-          });
-        //  });  // listener ends        // at the moment only shows when new comes or new message comes
-          // if no chats, might be good that the screen is disabled... maybe
-        }
+        } // if pass ok
       });
     });
   }
@@ -224,7 +246,7 @@ db.collection('chatOnline').onSnapshot(snapshot => {
   let changes = snapshot.docChanges();
   changes.forEach(change => {
     if (change.type === 'modified') {
-      chatStats.innerHTML = `${change.doc.data().value}`;
+      change.doc.data().value ? chatStats.innerHTML = `<span class= "silverText">ONLINE</span>` : chatStats.innerHTML = `<span class= "redText">OFFLINE</span>`;
     }
   });
 });
@@ -273,7 +295,7 @@ db.collection("chats").orderBy("name").onSnapshot(snapshot => {
         chat.hasAgent ? adjective = 'is being helped by' : adjective = 'needs agent!';
         console.log('chat in case: ', chat);
         if (chat.agent !== null) { helper = chat.agent } else { helper = null; };
-        leftSide.innerHTML += `<div class= "chatsAtLeft ${chat. borders}" id= "${chat.chatId}">
+        leftSide.innerHTML += `<div class= "chatsAtLeft ${chat.borders}" id= "${chat.chatId}">
         ${chat.name} ${adjective} ${helper}</div>`;
       });
     }
@@ -289,8 +311,4 @@ db.collection("chats").orderBy("name").onSnapshot(snapshot => {
 window.onload = ( ()=> {
   // focus on command line:
   usersName.focus();
-});
-// when window is closed
-window.onbeforeunload = ( ()=> {
-  // if need something here...
 });
