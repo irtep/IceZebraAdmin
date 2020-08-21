@@ -1,3 +1,13 @@
+/*
+NEXT:
+-If new message in chat, needs a clear alert
+-Auto destroy chat, instead of manual "delete chat"...
+well, maybe not as i want auto checker for disconnect,
+so that it would not be needed re-click the chat.
+-Investigate posibility to shorter disconnect checker
+
+*/
+
 // add user template
 db.collection("users").add({
   userName: 'ilppo',
@@ -54,5 +64,13 @@ db.collection("helpFiles").get().then((querySnapshot) => {
         }
     });
     infoScreen.innerHTML = 'database valmis!'
+});
+*/
+
+// add info that agent is online:
+// this will need to be needed, but it can stay for now as ref to other code..
+/*
+db.collection('agentsOnline').doc('OQ3GyyZowOxJkfD3WQcX').update({
+  howManyAgents: firebase.firestore.FieldValue.increment(1)
 });
 */
