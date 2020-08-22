@@ -148,6 +148,11 @@ function subName() {
         if (doc.data().userName === usersName.value &&
         doc.data().password === usersPw.value) {
           // username and psw found
+          // start disconnect checks
+          setInterval( () => {
+            console.log('check call');
+            autoDisconnectCheck(myFile.allChats);
+          }, 20000);
           // get status of chats:
           db.collection("chatOnline").get().then((snapshots) => {
             snapshots.forEach( snaps => {
@@ -165,10 +170,8 @@ function subName() {
           adminTools.classList.remove('noShow');
           // show inputs
           leftSide.innerHTML = 'chatit:<br>'
-
           // also should show what chats are available
-          console.log('myFile.allChats: ', myFile.allChats);
-
+          //console.log('myFile.allChats: ', myFile.allChats);
             db.collection("chats").get().then((snapshots) => {
               snapshots.forEach( chatInDb => {
                 if (myFile.allChats === []) {
@@ -193,15 +196,43 @@ function subName() {
               for (var i = 0; i < elements.length; i++) {
                 elements[i].addEventListener('click', clickedChat, false);
               }
-              
             });
-        } // if pass ok
+          } // if pass ok
+        });
+      });
+    }
+  }
+function autoDisconnectCheck(allMyChats) {
+  // checks all chats and if they are disconnected
+  console.log('aDC: ', allMyChats);
+  if (allMyChats.length !== 0) {
+    allMyChats.forEach( chat => {
+      console.log('chat check: ', chat.chatId);
+      // check if customer still online
+      const seconds = new Date().getTime() / 1000;
+      const docRef = db.collection("connectionCheck").doc(chat.chatId);
+      docRef.get().then((doc) => {
+        if (doc.exists) {
+          //console.log("Document data:", doc.data().lastCheck);
+          if (seconds-doc.data().lastCheck > 20) { // was 40, but changed to 20
+            console.log('this chat is old!');
+            // should set borders of chat red... nothing else...
+            
+            //console.log('result: ', seconds-doc.data().lastCheck);
+            //console.log('this guy has disconnected');
+            //const deleteToken = JSON.parse(JSON.stringify(myFile.activeChat)) + '_destroy';
+            //messut.innerHTML += 'customer has disconnected.';
+            //messut.innerHTML += `<button id= "${deleteToken}">delete chat</button>`;
+            //const deleteToken = JSON.parse(JSON.stringify(myFile.activeChat));
+            //document.getElementById(deleteToken).addEventListener('click', delChat);
+          } else {console.log('chat is ok');}
+        }
       });
     });
-  }
+  } else { console.log('no chats');}
 }
 function clickedChat(chat) {
-  console.log('clicked: ', chat.target.id);
+//  console.log('clicked: ', chat.target.id);
   myFile.allChats.forEach( (xhat, idx) => {
     if (chat.target.id === xhat.chatId) {
       if (xhat.hasAgent === false) {
@@ -218,7 +249,7 @@ function clickedChat(chat) {
       docRef.get().then((doc) => {
         if (doc.exists) {
         //console.log("Document data:", doc.data().lastCheck);
-        if (seconds-doc.data().lastCheck > 40) {
+        if (seconds-doc.data().lastCheck > 20) { // was 40, but changed to 20
           //console.log('result: ', seconds-doc.data().lastCheck);
           //console.log('this guy has disconnected');
           const deleteToken = JSON.parse(JSON.stringify(myFile.activeChat)) + '_destroy';

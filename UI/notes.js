@@ -1,11 +1,9 @@
 /*
 NEXT:
 -If new message in chat, needs a clear alert
--Auto destroy chat, instead of manual "delete chat"...
-well, maybe not as i want auto checker for disconnect,
-so that it would not be needed re-click the chat.
+-Complete automated disconnect checker 
 -Investigate posibility to shorter disconnect checker
-
+- OBS! When deleting one chat, the other comes as "needs agent.."
 */
 
 // add user template
