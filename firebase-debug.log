@@ -1,0 +1,14 @@
+[debug] [2020-08-24T09:10:19.278Z] ----------------------------------------------------------------------
+[debug] [2020-08-24T09:10:19.280Z] Command:       C:\Program Files\nodejs\node.exe C:\Users\Käyttäjä\AppData\Roaming\npm\node_modules\firebase-tools\lib\bin\firebase.js serve
+[debug] [2020-08-24T09:10:19.280Z] CLI Version:   8.6.0
+[debug] [2020-08-24T09:10:19.280Z] Platform:      win32
+[debug] [2020-08-24T09:10:19.280Z] Node Version:  v12.18.0
+[debug] [2020-08-24T09:10:19.281Z] Time:          Mon Aug 24 2020 12:10:19 GMT+0300 (GMT+03:00)
+[debug] [2020-08-24T09:10:19.281Z] ----------------------------------------------------------------------
+[debug] [2020-08-24T09:10:19.281Z] 
+[debug] [2020-08-24T09:10:19.288Z] > command requires scopes: ["email","openid","https://www.googleapis.com/auth/cloudplatformprojects.readonly","https://www.googleapis.com/auth/firebase","https://www.googleapis.com/auth/cloud-platform"]
+[debug] [2020-08-24T09:10:19.288Z] > authorizing via signed-in user
+[debug] [2020-08-24T09:10:19.288Z] [iam] checking project icezebrachatadmin for permissions ["firebase.projects.get"]
+[debug] [2020-08-24T09:10:19.291Z] > refreshing access token with scopes: ["email","https://www.googleapis.com/auth/cloud-platform","https://www.googleapis.com/auth/cloudplatformprojects.readonly","https://www.googleapis.com/auth/firebase","openid"]
+[debug] [2020-08-24T09:10:19.291Z] >>> HTTP REQUEST POST https://www.googleapis.com/oauth2/v3/token  
+ <request body omitted>

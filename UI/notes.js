@@ -1,8 +1,7 @@
 /*
 NEXT:
--If new message in chat, needs a clear alert
--Complete automated disconnect checker 
--Investigate posibility to shorter disconnect checker
+-if detects old chat, needs updateChatsPanel();
+- test more with two agents... doesnt work 100%
 - OBS! When deleting one chat, the other comes as "needs agent.."
 */
 
