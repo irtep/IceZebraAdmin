@@ -1,4 +1,5 @@
 import { firebaseConfig } from './config.js';
+//import { updateChatsPanel } from '/functions.js';
 // Initialize Firebase
 firebase.initializeApp(firebaseConfig);
 const db = firebase.firestore();
@@ -42,6 +43,35 @@ messageLine.addEventListener("keydown", function (e) {
     }
   }
 });
+function updateChatsPanel() {
+  /*
+  db.collection("chats").get().then((snapshots) => {
+    snapshots.forEach( chatInDb => {
+      if (myFile.allChats === []) {
+        myFile.allChats.push(chatInDb.data());
+      }
+    });
+    */
+    // write chats to left side
+    if (myFile.identified) {
+      let adjective = '';
+      let helper = '';
+      leftSide.innerHTML = '';
+      myFile.allChats.forEach( chat => {
+        chat.hasAgent ? adjective = 'is being helped by' : adjective = 'needs agent!';
+        console.log('chat in case: ', chat);
+        if (chat.agent !== null) { helper = chat.agent } else { helper = ''; };
+        leftSide.innerHTML += `<div class= "chatsAtLeft ${chat.borders}" id= "${chat.chatId}">
+        ${chat.name} ${adjective} ${helper}</div>`;
+      });
+    }
+    // event listener for chats at left
+    const elements = document.getElementsByClassName('chatsAtLeft');
+    for (var i = 0; i < elements.length; i++) {
+      elements[i].addEventListener('click', clickedChat, false);
+    }
+//  }); //
+}
 // destroys chat in its online checks
 function delChat(theChat) {
   const toDelete = theChat.target.id.substring(0, theChat.target.id.length-8);
@@ -61,7 +91,7 @@ function delChat(theChat) {
       leftSide.innerHTML = '';
       myFile.allChats.forEach( chat => {
         chat.hasAgent ? adjective = 'is being helped by' : adjective = 'needs agent!';
-        console.log('chat in case: ', chat);
+        //console.log('chat in case: ', chat);
         if (chat.agent !== null) { helper = chat.agent } else { helper = null; };
         leftSide.innerHTML += `<div class= "chatsAtLeft ${chat. borders}" id= "${chat.chatId}">
         ${chat.name} ${adjective} ${helper}</div>`;
@@ -132,7 +162,10 @@ function sMbuttonClicked() {
         chat.messages.push(freshMsg);
         //console.log('pushing: ', chat.messages);
         db.collection('chats').doc(myFile.activeChat).update({
-          messages: chat.messages
+          messages: chat.messages,
+          borders: 'greenBorders',
+          hasAgent: true,
+          agent: myFile.myDetails[0].chatNick
         });
       }
     });
@@ -172,6 +205,15 @@ function subName() {
           leftSide.innerHTML = 'chatit:<br>'
           // also should show what chats are available
           //console.log('myFile.allChats: ', myFile.allChats);
+          db.collection("chats").get().then((snapshots) => {
+            snapshots.forEach( chatInDb => {
+              if (myFile.allChats === []) {
+                myFile.allChats.push(chatInDb.data());
+              }
+            updateChatsPanel();
+            });
+          });
+          /*
             db.collection("chats").get().then((snapshots) => {
               snapshots.forEach( chatInDb => {
                 if (myFile.allChats === []) {
@@ -186,7 +228,7 @@ function subName() {
                 myFile.allChats.forEach( chat => {
                   chat.hasAgent ? adjective = 'is being helped by' : adjective = 'needs agent!';
                   console.log('chat in case: ', chat);
-                  if (chat.agent !== null) { helper = chat.agent } else { helper = null; };
+                  if (chat.agent !== null) { helper = chat.agent } else { helper = ''; };
                   leftSide.innerHTML += `<div class= "chatsAtLeft ${chat.borders}" id= "${chat.chatId}">
                   ${chat.name} ${adjective} ${helper}</div>`;
                 });
@@ -196,7 +238,8 @@ function subName() {
               for (var i = 0; i < elements.length; i++) {
                 elements[i].addEventListener('click', clickedChat, false);
               }
-            });
+            }); // until here...
+            */
           } // if pass ok
         });
       });
@@ -207,7 +250,7 @@ function autoDisconnectCheck(allMyChats) {
   console.log('aDC: ', allMyChats);
   if (allMyChats.length !== 0) {
     allMyChats.forEach( chat => {
-      console.log('chat check: ', chat.chatId);
+      console.log('chat check: ', chat);
       // check if customer still online
       const seconds = new Date().getTime() / 1000;
       const docRef = db.collection("connectionCheck").doc(chat.chatId);
@@ -215,9 +258,11 @@ function autoDisconnectCheck(allMyChats) {
         if (doc.exists) {
           //console.log("Document data:", doc.data().lastCheck);
           if (seconds-doc.data().lastCheck > 20) { // was 40, but changed to 20
-            console.log('this chat is old!');
+            console.log('this chat is old!', chat.borders);
+            chat.borders = 'redBorders';
+            // mod in database the borders
+
             // should set borders of chat red... nothing else...
-            
             //console.log('result: ', seconds-doc.data().lastCheck);
             //console.log('this guy has disconnected');
             //const deleteToken = JSON.parse(JSON.stringify(myFile.activeChat)) + '_destroy';
@@ -225,7 +270,9 @@ function autoDisconnectCheck(allMyChats) {
             //messut.innerHTML += `<button id= "${deleteToken}">delete chat</button>`;
             //const deleteToken = JSON.parse(JSON.stringify(myFile.activeChat));
             //document.getElementById(deleteToken).addEventListener('click', delChat);
-          } else {console.log('chat is ok');}
+          } else {
+            console.log('chat is ok');
+          }
         }
       });
     });
@@ -253,7 +300,7 @@ function clickedChat(chat) {
           //console.log('result: ', seconds-doc.data().lastCheck);
           //console.log('this guy has disconnected');
           const deleteToken = JSON.parse(JSON.stringify(myFile.activeChat)) + '_destroy';
-          messut.innerHTML += 'customer has disconnected.';
+          messut.innerHTML += '<br>customer has disconnected.';
           messut.innerHTML += `<button id= "${deleteToken}">delete chat</button>`;
           //const deleteToken = JSON.parse(JSON.stringify(myFile.activeChat));
           document.getElementById(deleteToken).addEventListener('click', delChat);
@@ -307,8 +354,9 @@ db.collection("chats").orderBy("name").onSnapshot(snapshot => {
     } else if (change.type === 'modified') {
       myFile.allChats.forEach( chat => {
         if (chat.chatId === change.doc.data().chatId) {
-          chat.borders = 'blueBorders';
+          //chat.borders = 'blueBorders';
           chat.messages = change.doc.data().messages;
+          chat.borders = change.doc.data().borders;
           // if this is active at the moment
           if (myFile.activeChat === change.doc.data().docRefId) {
             messut.innerHTML = change.doc.data().messages;
@@ -316,6 +364,7 @@ db.collection("chats").orderBy("name").onSnapshot(snapshot => {
             messut.scrollTop = messut.scrollHeight;
           }
         }
+        updateChatsPanel();
       });
     //  console.log('new message in chat');
     }
@@ -325,7 +374,7 @@ db.collection("chats").orderBy("name").onSnapshot(snapshot => {
       myFile.allChats.forEach( chat => {
         chat.hasAgent ? adjective = 'is being helped by' : adjective = 'needs agent!';
         console.log('chat in case: ', chat);
-        if (chat.agent !== null) { helper = chat.agent } else { helper = null; };
+        if (chat.agent !== null) { helper = chat.agent } else { helper = ''; };
         leftSide.innerHTML += `<div class= "chatsAtLeft ${chat.borders}" id= "${chat.chatId}">
         ${chat.name} ${adjective} ${helper}</div>`;
       });
