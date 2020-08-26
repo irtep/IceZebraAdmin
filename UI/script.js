@@ -1,5 +1,4 @@
 import { firebaseConfig } from './config.js';
-//import { updateChatsPanel } from '/functions.js';
 // Initialize Firebase
 firebase.initializeApp(firebaseConfig);
 const db = firebase.firestore();
@@ -43,15 +42,8 @@ messageLine.addEventListener("keydown", function (e) {
     }
   }
 });
+// this updates panel at left, showing available chats
 function updateChatsPanel() {
-  /*
-  db.collection("chats").get().then((snapshots) => {
-    snapshots.forEach( chatInDb => {
-      if (myFile.allChats === []) {
-        myFile.allChats.push(chatInDb.data());
-      }
-    });
-    */
     // write chats to left side
     if (myFile.identified) {
       let adjective = '';
@@ -70,7 +62,6 @@ function updateChatsPanel() {
     for (var i = 0; i < elements.length; i++) {
       elements[i].addEventListener('click', clickedChat, false);
     }
-//  }); //
 }
 // destroys chat in its online checks
 function delChat(theChat) {
@@ -106,7 +97,6 @@ function delChat(theChat) {
 }
 // changes chat nickname
 function changeChatNick(newNick) {
-  console.log('changing nick: ', newNick.target.value);
   myFile.myDetails[0].chatNick = newNick.target.value;
 }
 // sets chats of the page on and off
@@ -152,20 +142,17 @@ function sendMessage(myName, myMessage) {
 // sendMessageButton clicked
 function sMbuttonClicked() {
   if (messageLine.value !== '') {
-    //console.log('sending. myFile: ', myFile);
     const freshMsg = sendMessage(myFile.myDetails[0].chatNick, messageLine.value);
     messageLine.value = '';
     // find ref number
     myFile.allChats.forEach( (chat, idx) => {
       if (chat.docRefId === myFile.activeChat) {
-        //console.log('found the chat...', chat.docRefId, myFile.activeChat);
         chat.messages.push(freshMsg);
-        //console.log('pushing: ', chat.messages);
         db.collection('chats').doc(myFile.activeChat).update({
           messages: chat.messages,
           borders: 'greenBorders',
           hasAgent: true,
-          agent: myFile.myDetails[0].chatNick
+          agent: myFile.myDetails[0].userName
         });
       }
     });
@@ -177,7 +164,6 @@ function subName() {
     // check if username and psw are ok
     db.collection("users").get().then( (querySnapshot) => {
       querySnapshot.forEach( (doc) => {
-        //console.log('comparnig: ', doc.data().userName, usersName.value, doc.data().password, usersPw.value);
         if (doc.data().userName === usersName.value &&
         doc.data().password === usersPw.value) {
           // username and psw found
@@ -190,7 +176,6 @@ function subName() {
           db.collection("chatOnline").get().then((snapshots) => {
             snapshots.forEach( snaps => {
               snaps.data().value ? chatStats.innerHTML = `<span class= "silverText">ONLINE</span>` : chatStats.innerHTML = `<span class= "redText">OFFLINE</span>`;
-              //chatStats.innerHTML = `${snaps.data().value}`;
             });
           });
           myFile.myDetails.push(doc.data());
@@ -202,9 +187,7 @@ function subName() {
           pswFields.classList.add('noShow');
           adminTools.classList.remove('noShow');
           // show inputs
-          leftSide.innerHTML = 'chatit:<br>'
-          // also should show what chats are available
-          //console.log('myFile.allChats: ', myFile.allChats);
+          leftSide.innerHTML = 'chatit:<br>';
           db.collection("chats").get().then((snapshots) => {
             snapshots.forEach( chatInDb => {
               if (myFile.allChats === []) {
@@ -213,73 +196,35 @@ function subName() {
             updateChatsPanel();
             });
           });
-          /*
-            db.collection("chats").get().then((snapshots) => {
-              snapshots.forEach( chatInDb => {
-                if (myFile.allChats === []) {
-                  myFile.allChats.push(chatInDb.data());
-                }
-              });
-              // write chats to left side
-              if (myFile.identified) {
-                let adjective = '';
-                let helper = '';
-                leftSide.innerHTML = '';
-                myFile.allChats.forEach( chat => {
-                  chat.hasAgent ? adjective = 'is being helped by' : adjective = 'needs agent!';
-                  console.log('chat in case: ', chat);
-                  if (chat.agent !== null) { helper = chat.agent } else { helper = ''; };
-                  leftSide.innerHTML += `<div class= "chatsAtLeft ${chat.borders}" id= "${chat.chatId}">
-                  ${chat.name} ${adjective} ${helper}</div>`;
-                });
-              }
-              // event listener for chats at left
-              const elements = document.getElementsByClassName('chatsAtLeft');
-              for (var i = 0; i < elements.length; i++) {
-                elements[i].addEventListener('click', clickedChat, false);
-              }
-            }); // until here...
-            */
-          } // if pass ok
-        });
+        } // if pass ok
       });
-    }
+    });
   }
+}
+// checks if customers are still there
 function autoDisconnectCheck(allMyChats) {
   // checks all chats and if they are disconnected
-  console.log('aDC: ', allMyChats);
   if (allMyChats.length !== 0) {
     allMyChats.forEach( chat => {
-      console.log('chat check: ', chat);
       // check if customer still online
       const seconds = new Date().getTime() / 1000;
       const docRef = db.collection("connectionCheck").doc(chat.chatId);
       docRef.get().then((doc) => {
         if (doc.exists) {
-          //console.log("Document data:", doc.data().lastCheck);
-          if (seconds-doc.data().lastCheck > 20) { // was 40, but changed to 20
-            console.log('this chat is old!', chat.borders);
+          if (seconds-doc.data().lastCheck > 20) {
             chat.borders = 'redBorders';
-            // mod in database the borders
-
-            // should set borders of chat red... nothing else...
-            //console.log('result: ', seconds-doc.data().lastCheck);
-            //console.log('this guy has disconnected');
-            //const deleteToken = JSON.parse(JSON.stringify(myFile.activeChat)) + '_destroy';
-            //messut.innerHTML += 'customer has disconnected.';
-            //messut.innerHTML += `<button id= "${deleteToken}">delete chat</button>`;
-            //const deleteToken = JSON.parse(JSON.stringify(myFile.activeChat));
-            //document.getElementById(deleteToken).addEventListener('click', delChat);
+            updateChatsPanel();
           } else {
-            console.log('chat is ok');
+            // chat is still online
           }
         }
       });
     });
-  } else { console.log('no chats');}
+  } else {
+    // no chats
+  }
 }
 function clickedChat(chat) {
-//  console.log('clicked: ', chat.target.id);
   myFile.allChats.forEach( (xhat, idx) => {
     if (chat.target.id === xhat.chatId) {
       if (xhat.hasAgent === false) {
@@ -293,25 +238,24 @@ function clickedChat(chat) {
       // check if customer still online
       const seconds = new Date().getTime() / 1000;
       const docRef = db.collection("connectionCheck").doc(myFile.activeChat);
+      // make copy of this in case that use clicks next chat faster than db check is ready
+      const doubleCheck = JSON.parse(JSON.stringify(myFile.activeChat));
       docRef.get().then((doc) => {
         if (doc.exists) {
-        //console.log("Document data:", doc.data().lastCheck);
-        if (seconds-doc.data().lastCheck > 20) { // was 40, but changed to 20
-          //console.log('result: ', seconds-doc.data().lastCheck);
-          //console.log('this guy has disconnected');
-          const deleteToken = JSON.parse(JSON.stringify(myFile.activeChat)) + '_destroy';
-          messut.innerHTML += '<br>customer has disconnected.';
-          messut.innerHTML += `<button id= "${deleteToken}">delete chat</button>`;
-          //const deleteToken = JSON.parse(JSON.stringify(myFile.activeChat));
-          document.getElementById(deleteToken).addEventListener('click', delChat);
+          if (seconds-doc.data().lastCheck > 20) {
+            const chatToBeDeleted = JSON.parse(JSON.stringify(myFile.activeChat));
+            // double check that the right chat would be deleted
+            if (chatToBeDeleted === doubleCheck) {
+              const deleteToken = chatToBeDeleted + '_destroy';
+              messut.innerHTML += '<br>customer has disconnected.';
+              messut.innerHTML += `<button id= "${deleteToken}">delete chat</button>`;
+              document.getElementById(deleteToken).addEventListener('click', delChat);
+            }
+          } else {
+            // chat is still ok
+          }
         } else {
-          //console.log('result: ', seconds-doc.data().lastCheck);
-          //console.log('this guy is online');
-        }
-        // here check the erotus...
-        } else {
-          // doc.data() will be undefined in this case
-          //console.log("No such document!");
+          // document doesn't exist.
         }
       }).catch(function(error) {
         console.log("Error getting document:", error);
