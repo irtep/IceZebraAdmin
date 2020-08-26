@@ -35,8 +35,8 @@ grid-template-areas:
 }
 #chatWindow {
   border-radius: 10px;
-  background-color: silver;
-  color: black;
+  background-color: black;
+  color: gold;
   font-family: 'Audiowide', cursive;
   height: 70vh;
   width: 70vw;
@@ -53,11 +53,16 @@ grid-template-areas:
   margin-top: 3px;
   margin-bottom: 3px;
 }
+.smaller {
+  font-size: 60%;
+}
 .yellowBorders {
   border-color: yellow;
+  color: yellow;
 }
 .greenBorders {
   border-color: green;
+  color: green;
 }
 .blueBorders {
   border-color: blue;
@@ -66,6 +71,7 @@ grid-template-areas:
 }
 .redBorders {
   border-color: red;
+  color: red;
 }
 .redText {
   color: red;

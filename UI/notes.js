@@ -1,8 +1,14 @@
 /*
 NEXT:
--if detects old chat, needs updateChatsPanel();
+-
 - test more with two agents... doesnt work 100%
-- OBS! When deleting one chat, the other comes as "needs agent.."
+- OBS! When deleting one chat, the others come as chat nick... not with admin..
+*/
+/*
+legends:
+yellow borders: new chat came
+red: disconnected chat
+white backround: new message in chat
 */
 
 // add user template
